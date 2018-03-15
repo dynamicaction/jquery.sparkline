@@ -53,7 +53,7 @@
                 maxValue = options.get('chartRangeMax') === undefined ? Math.max.apply(Math, values) : options.get('chartRangeMax'),
                 canvasLeft = 0,
                 lwhisker, loutlier, iqr, q1, q2, q3, rwhisker, routlier, i,
-                size, unitSize;
+                size, unitSize, unitOffset;
 
             if (!box._super.render.call(this)) {
                 return;
@@ -104,11 +104,16 @@
             this.loutlier = loutlier;
             this.routlier = routlier;
 
-            unitSize = canvasWidth / (maxValue - minValue + 1);
+            // Non-zero unit offset can throw off the plotting if it is not
+            // required to avoid a division by zero.
+            unitOffset = 0.0;
+            if ( ( maxValue - minValue ) == 0.0 ) { unitOffset = 1.0; }
+
+            unitSize = canvasWidth / (maxValue - minValue + unitOffset );
             if (options.get('showOutliers')) {
                 canvasLeft = Math.ceil(options.get('spotRadius'));
                 canvasWidth -= 2 * Math.ceil(options.get('spotRadius'));
-                unitSize = canvasWidth / (maxValue - minValue + 1);
+                unitSize = canvasWidth / (maxValue - minValue + unitOffset);
                 if (loutlier < lwhisker) {
                     target.drawCircle((loutlier - minValue) * unitSize + canvasLeft,
                         canvasHeight / 2,
@@ -132,53 +137,90 @@
                 Math.round((q3 - q1) * unitSize),
                 Math.round(canvasHeight * 0.8),
                 options.get('boxLineColor'),
-                options.get('boxFillColor')).append();
+                options.get('boxFillColor'),
+                // CUSTOM MOD: line width & corner radius
+                options.get('lineWidth'),
+                options.get('cornerRadius')).append();
             // left whisker
+            // CUSTOM MOD: strikethrough option
+            var rightEnd = q1 - minValue;
+            if (options.get('strikeThrough'))
+              rightEnd = rwhisker - minValue;
+
             target.drawLine(
                 Math.round((lwhisker - minValue) * unitSize + canvasLeft),
                 Math.round(canvasHeight / 2),
-                Math.round((q1 - minValue) * unitSize + canvasLeft),
+                Math.round(rightEnd * unitSize + canvasLeft),
                 Math.round(canvasHeight / 2),
-                options.get('lineColor')).append();
+                // CUSTOM MOD: line width added
+                options.get('lineColor'),
+                options.get('lineWidth')).append();
             target.drawLine(
                 Math.round((lwhisker - minValue) * unitSize + canvasLeft),
                 Math.round(canvasHeight / 4),
                 Math.round((lwhisker - minValue) * unitSize + canvasLeft),
                 Math.round(canvasHeight - canvasHeight / 4),
-                options.get('whiskerColor')).append();
+                options.get('whiskerColor'),
+                // CUSTOM MOD: line width added
+                options.get('lineWidth')).append();
             // right whisker
-            target.drawLine(Math.round((rwhisker - minValue) * unitSize + canvasLeft),
-                Math.round(canvasHeight / 2),
-                Math.round((q3 - minValue) * unitSize + canvasLeft),
-                Math.round(canvasHeight / 2),
-                options.get('lineColor')).append();
+            // CUSTOM MOD: strikethrough option
+            if (!options.get('strikeThrough'))
+            {
+              target.drawLine(Math.round((rwhisker - minValue) * unitSize + canvasLeft),
+                  Math.round(canvasHeight / 2),
+                  Math.round((q3 - minValue) * unitSize + canvasLeft),
+                  Math.round(canvasHeight / 2),
+                  options.get('lineColor'),
+                  // CUSTOM MOD: line width added
+                  options.get('lineWidth')).append();
+            }
             target.drawLine(
                 Math.round((rwhisker - minValue) * unitSize + canvasLeft),
                 Math.round(canvasHeight / 4),
                 Math.round((rwhisker - minValue) * unitSize + canvasLeft),
                 Math.round(canvasHeight - canvasHeight / 4),
-                options.get('whiskerColor')).append();
+                options.get('whiskerColor'),
+                // CUSTOM MOD: line width added
+                options.get('lineWidth')).append();
+
             // median line
             target.drawLine(
                 Math.round((q2 - minValue) * unitSize + canvasLeft),
                 Math.round(canvasHeight * 0.1),
                 Math.round((q2 - minValue) * unitSize + canvasLeft),
                 Math.round(canvasHeight * 0.9),
-                options.get('medianColor')).append();
-            if (options.get('target')) {
+                // CUSTOM MOD: medianwidth option
+                options.get('medianColor'),
+                options.get('medianWidth')).append();
+            if (typeof options.get('target') == 'number') {
                 size = Math.ceil(options.get('spotRadius'));
-                target.drawLine(
-                    Math.round((options.get('target') - minValue) * unitSize + canvasLeft),
-                    Math.round((canvasHeight / 2) - size),
-                    Math.round((options.get('target') - minValue) * unitSize + canvasLeft),
-                    Math.round((canvasHeight / 2) + size),
-                    options.get('targetColor')).append();
-                target.drawLine(
-                    Math.round((options.get('target') - minValue) * unitSize + canvasLeft - size),
-                    Math.round(canvasHeight / 2),
-                    Math.round((options.get('target') - minValue) * unitSize + canvasLeft + size),
-                    Math.round(canvasHeight / 2),
-                    options.get('targetColor')).append();
+                // CUSTOM MOD: circle representation of median
+                var targetVal = options.get('target');
+                var targetObj = options.get('targetObj')
+                if (!targetObj || targetObj == 'crosshair') {
+                    target.drawLine(
+                        Math.round((targetVal - minValue) * unitSize + canvasLeft),
+                        Math.round((canvasHeight / 2) - size),
+                        Math.round((targetVal - minValue) * unitSize + canvasLeft),
+                        Math.round((canvasHeight / 2) + size),
+                        options.get('targetColor')).append();
+                    target.drawLine(
+                        Math.round((targetVal - minValue) * unitSize + canvasLeft - size),
+                        Math.round(canvasHeight / 2),
+                        Math.round((targetVal - minValue) * unitSize + canvasLeft + size),
+                        Math.round(canvasHeight / 2),
+                        options.get('targetColor')).append();
+                }
+                else if (targetObj == 'circle')
+                {
+                    target.drawCircle(
+                        (targetVal - minValue) * unitSize + canvasLeft,
+                        canvasHeight / 2,
+                        options.get('spotRadius'),
+                        options.get('targetColor'),
+                        options.get('targetColor')).append();
+                }
             }
             target.render();
         }

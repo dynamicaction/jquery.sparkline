@@ -32,7 +32,8 @@
         },
 
         drawLine: function (x1, y1, x2, y2, lineColor, lineWidth) {
-            return this.drawShape([[x1, y1], [x2, y2]], lineColor, lineWidth);
+            // CUSTOM MOD: line width added
+            return this.drawShape([[x1, y1], [x2, y2]], lineColor, null, lineWidth);
         },
 
         drawShape: function (path, lineColor, fillColor, lineWidth) {
@@ -47,8 +48,9 @@
             return this._genShape('PieSlice', [x, y, radius, startAngle, endAngle, lineColor, fillColor]);
         },
 
-        drawRect: function (x, y, width, height, lineColor, fillColor) {
-            return this._genShape('Rect', [x, y, width, height, lineColor, fillColor]);
+        // CUSTOM MOD: line width / radius added
+        drawRect: function (x, y, width, height, lineColor, fillColor, lineWidth, radius) {
+            return this._genShape('Rect', [x, y, width, height, lineColor, fillColor, lineWidth, radius]);
         },
 
         getElement: function () {
@@ -91,6 +93,9 @@
             } else {
                 this.pixelWidth = $(canvas).width();
             }
+            var ratio = window.hasOwnProperty('devicePixelRatio') ? window.devicePixelRatio : 1;
+            this.pixelWidth *= ratio;
+            this.pixelHeight *= ratio;
         },
 
         /**

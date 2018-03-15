@@ -225,7 +225,10 @@
             var currentRegion = this.currentRegion,
                 highlightEnabled = !this.options.get('disableHighlight'),
                 newRegion;
-            if (x > this.canvasWidth || y > this.canvasHeight || x < 0 || y < 0) {
+            // CUSTOM MOD: proper hover detection considering padding as well
+            var cW = $('canvas',this.el).width() + parseInt($('canvas',this.el).css('padding-left')) + parseInt($('canvas',this.el).css('padding-right'))
+            // if (x > this.canvasWidth || y > this.canvasHeight || x < 0 || y < 0) {
+            if (x > cW || y > this.canvasHeight || x < 0 || y < 0) {
                 return null;
             }
             newRegion = this.getRegion(el, x, y);
@@ -273,7 +276,8 @@
                 entries = [],
                 fields, formats, formatlen, fclass, text, i,
                 showFields, showFieldsKey, newFields, fv,
-                formatter, format, fieldlen, j;
+                formatter, format, fieldlen, j,
+                label_prefix, label_suffix;
             if (this.currentRegion === undefined) {
                 return '';
             }
@@ -316,12 +320,24 @@
                     format = new SPFormat(format);
                 }
                 fclass = format.fclass || 'jqsfield';
+
                 for (j = 0; j < fieldlen; j++) {
                     if (!fields[j].isNull || !options.get('tooltipSkipNull')) {
+                        label_prefix = '';
+                        label_suffix = '';
+                        if (options.get('tooltipPrefixBinLabels')
+                            && (options.get('tooltipPrefixBinLabels').length > fields[j].offset)) {
+                            label_prefix = options.get('tooltipPrefixBinLabels')[fields[j].offset];
+                        }
+                        if (options.get('tooltipSuffixBinLabels')
+                            && (options.get('tooltipSuffixBinLabels').length > fields[j].offset)) {
+                            label_suffix = options.get('tooltipSuffixBinLabels')[fields[j].offset];
+                        }
                         $.extend(fields[j], {
-                            prefix: options.get('tooltipPrefix'),
-                            suffix: options.get('tooltipSuffix')
+                            prefix: label_prefix + options.get('tooltipPrefix'),
+                            suffix: options.get('tooltipSuffix') + label_suffix
                         });
+
                         text = format.render(fields[j], options.get('tooltipValueLookups'), options);
                         entries.push('<div class="' + fclass + '">' + text + '</div>');
                     }

@@ -98,21 +98,61 @@
         return val;
     };
 
-    quartile = function (values, q) {
-        var vl;
-        if (q === 2) {
-            vl = Math.floor(values.length / 2);
-            return values.length % 2 ? values[vl] : (values[vl-1] + values[vl]) / 2;
-        } else {
-            if (values.length % 2 ) { // odd
-                vl = (values.length * q + q) / 4;
-                return vl % 1 ? (values[Math.floor(vl)] + values[Math.floor(vl) - 1]) / 2 : values[vl-1];
-            } else { //even
-                vl = (values.length * q + 2) / 4;
-                return vl % 1 ? (values[Math.floor(vl)] + values[Math.floor(vl) - 1]) / 2 :  values[vl-1];
-
-            }
+    // CUSTOM MOD: completely new median func
+    median = function (values) {
+        var ret, idx;
+        if (!(values.length % 2)) {
+            var v1, v2;
+            idx = values.length / 2;
+            v1 = values[idx - 1];
+            v2 = values[idx];
+            ret = (v1 + v2) / 2;
         }
+        else {
+            idx = parseInt(values.length / 2)
+            ret = values[idx]
+        }
+
+        return { 'm': ret, 'idx': idx };
+    };
+
+    // CUSTOM MOD: completely rewritten quartile func
+    quartile = function (values, q) {
+        var ret, m, med;
+        m = median(values);
+
+        if (q === 2) {
+            ret = m.m;
+        }
+        else {
+            var arr = new Array();
+            med = m.m
+
+            if (med != null) {
+                var i = 0;
+                if (q === 1) {
+                    while (i < m.idx) {
+                      arr[i] = values[i];
+                      i ++;
+                    }
+                    if (!arr.length)
+                      arr = [ values[0] ]
+                }
+                else if (q === 3) {
+                    var j = values.length - 1;
+                    while (j > m.idx) {
+                        arr[i] = values[j];
+                        i ++;
+                        j --;
+                    }
+                    if (!arr.length)
+                      arr = [ values[values.length - 1] ]
+                }
+            }
+            m = median(arr);
+            ret = m.m;
+        }
+        return ret;
     };
 
     normalizeValue = function (val) {

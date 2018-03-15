@@ -342,6 +342,19 @@
                 }
             }
 
+            // explicitly compare the refLineX/Y option values with 'null' as numeric zero(0) should plot a ref-line at zero!
+            if (options.get('refLineX') != null) {
+                var y;
+                y = Math.round(this.canvasHeight - (options.get('refLineX') - this.miny) * (this.canvasHeight/rangey));
+                target.drawLine(0, y, this.canvasWidth, y, options.get('refLineColor')).append();
+            }
+
+            if (options.get('refLineY') != null) {
+                var x;
+                x = Math.round((options.get('refLineY') - this.minx) * (this.canvasWidth/rangex));
+                target.drawLine(x, this.canvasHeight, x, 0, options.get('refLineColor')).append();
+            }
+
             this.lastShapeId = target.getLastShapeId();
             this.canvasTop = canvasTop;
             target.render();

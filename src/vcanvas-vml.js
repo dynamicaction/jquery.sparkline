@@ -20,7 +20,7 @@
             this.prerender = '';
         },
 
-        _drawShape: function (shapeid, path, lineColor, fillColor, lineWidth) {
+        _drawShape: function (shapeid, path, lineColor, fillColor, lineWidth, radius) {
             var vpath = [],
                 initial, stroke, fill, closed, vel, plen, i;
             for (i = 0, plen = path.length; i < plen; i++) {
@@ -98,8 +98,8 @@
             return vel;
         },
 
-        _drawRect: function (shapeid, x, y, width, height, lineColor, fillColor) {
-            return this._drawShape(shapeid, [[x, y], [x, y + height], [x + width, y + height], [x + width, y], [x, y]], lineColor, fillColor);
+        _drawRect: function (shapeid, x, y, width, height, lineColor, fillColor, lineWidth, radius) {
+            return this._drawShape(shapeid, [[x, y], [x, y + height], [x + width, y + height], [x + width, y], [x, y]], lineColor, fillColor, lineWidth, radius);
         },
 
         reset: function () {

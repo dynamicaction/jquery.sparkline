@@ -33,6 +33,9 @@
                 spotColor: '#f80',
                 highlightSpotColor: '#5f5',
                 highlightLineColor: '#f22',
+                refLineColor: '#f22',
+                // refLineX: null,
+                // refLineY: null,
                 spotRadius: 1.5,
                 minSpotColor: '#f80',
                 maxSpotColor: '#f80',
@@ -64,6 +67,24 @@
                 colorMap: undefined,
                 tooltipFormat: new SPFormat('<span style="color: {{color}}">&#9679;</span> {{prefix}}{{value}}{{suffix}}')
             },
+            // Defaults for timeline charts
+            timeline: {
+                width: 120,
+                height: 3,
+                lineColor: '#6792c6',
+                fillColor: '#bad7fb',
+                orientation: 'horizontal', // or 'vertical'
+                // number of minutes to modulate time markers from begin option
+                timeMarkInterval: 0,
+                // minimum date/time to show in timeline
+                begin: new Date(2000, 1, 1, 0, 0),
+                // maximum date/time to show in timeline
+                finish: new Date(2000, 1, 1, 23, 59),
+                // allow user to provide their own date parsing abilities
+                // data must provide begin, finish, title and color hash object
+                init: function (data) { return {begin: new Date(data.begin), finish: new Date(data.finish), title: data.title, color: data.color}; },
+                tooltipFormat: new SPFormat('<span style="color: {{color}}">&#9679;</span> {{title}}: {{begin}} / {{finish}}')
+            },
             // Defaults for tristate charts
             tristate: {
                 barWidth: 4,
@@ -72,7 +93,7 @@
                 negBarColor: '#f44',
                 zeroBarColor: '#999',
                 colorMap: {},
-                tooltipFormat: new SPFormat('<span style="color: {{color}}">&#9679;</span> {{value:map}}'),
+                tooltipFormat: new SPFormat('<span style="color: {{color}}">&#9679;</span> {{prefix}}{{value:map}}{{suffix}}'),
                 tooltipValueLookups: { map: { '-1': 'Loss', '0': 'Draw', '1': 'Win' } }
             },
             // Defaults for discrete charts
@@ -102,7 +123,7 @@
                     '#dd4477', '#0099c6', '#990099'],
                 borderWidth: 0,
                 borderColor: '#000',
-                tooltipFormat: new SPFormat('<span style="color: {{color}}">&#9679;</span> {{value}} ({{percent.1}}%)')
+                tooltipFormat: new SPFormat('<span style="color: {{color}}">&#9679;</span> {{prefix}}{{value}} ({{percent.1}}%){{suffix}}')
             },
             // Defaults for box plots
             box: {
@@ -129,6 +150,11 @@
         };
     };
 
+    // Bootstrap adds box-sizing that messes with alignment in the tooltip.
+    var box_sizing = '-webkit-box-sizing: content-box !important;' +
+          '-moz-box-sizing: content-box !important;' +
+          'box-sizing: content-box !important;'
+
     // You can have tooltips use a css class other than jqstooltip by specifying tooltipClassname
     defaultStyles = '.jqstooltip { ' +
             'position: absolute;' +
@@ -145,12 +171,15 @@
             'white-space: nowrap;' +
             'padding: 5px;' +
             'border: 1px solid white;' +
-            'box-sizing: content-box;' +
             'z-index: 10000;' +
+            box_sizing +
             '}' +
             '.jqsfield { ' +
             'color: white;' +
             'font: 10px arial, san serif;' +
             'text-align: left;' +
+            '}' +
+            '.jqstooltip:before, .jqstooltip:after { ' +
+            box_sizing +
             '}';
 
